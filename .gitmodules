@@ -1,0 +1,3 @@
+[submodule "MotionMark"]
+	path = MotionMark
+	url = https://github.com/WebKit/MotionMark.git
