@@ -36,6 +36,10 @@ Suites.push(new Suite("MotionMark",
             name: "Multiply"
         },
         {
+            url: "core/multiply-variant.html",
+            name: "Multiply with CSS Animations"
+        },
+        {
             url: "core/canvas-stage.html?pathType=arcs",
             name: "Canvas Arcs"
         },
