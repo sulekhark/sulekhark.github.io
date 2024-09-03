@@ -43,7 +43,6 @@ var MultiplyVariantStage = Utilities.createSubclass(Stage,
         var tileSize = Math.round(this.size.height / this.totalRows);
         if (options.visibleCSS)
             this.visibleCSS = options.visibleCSS;
-	// document.getElementById("srk-tilesize").textContent = "HELLO &nbsp; &nbsp;";
 	console.log("SRK: tileSize is: " + tileSize);
 
         // Fill the scene with elements
@@ -96,6 +95,7 @@ var MultiplyVariantStage = Utilities.createSubclass(Stage,
         tile.style[visibleCSS[0]] = visibleCSS[1];
 
         var distance = 1 / tileSize * this.size.multiply(0.5).subtract(new Point(x + halfTileSize, y + halfTileSize)).length();
+	console.log("SRK: x, y, distance is: " + x + "  " + y + "  " + distance);
         this.tiles.push({
             element: tile,
             rotate: rotateDeg,
