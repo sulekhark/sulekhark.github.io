@@ -44,6 +44,7 @@ var MultiplyVariantStage = Utilities.createSubclass(Stage,
         if (options.visibleCSS)
             this.visibleCSS = options.visibleCSS;
 	// document.getElementById("srk-tilesize").textContent = "HELLO &nbsp; &nbsp;";
+	console.log("SRK: HELLO");
 
         // Fill the scene with elements
         var x = Math.round((this.size.width - tileSize) / 2);
