@@ -43,7 +43,6 @@ var MultiplyVariantStage = Utilities.createSubclass(Stage,
         var tileSize = Math.round(this.size.height / this.totalRows);
         if (options.visibleCSS)
             this.visibleCSS = options.visibleCSS;
-	console.log("SRK: tileSize is: " + tileSize);
 
         // Fill the scene with elements
         var x = Math.round((this.size.width - tileSize) / 2);
@@ -119,6 +118,7 @@ var MultiplyVariantStage = Utilities.createSubclass(Stage,
 
     animate: function()
     {
+	console.log("SRK: bmk timestamp is: " + this._benchmark.timestamp);
         var progress = this._benchmark.timestamp % 10000 / 10000;
         var bounceProgress = Math.sin(2 * Math.abs( 0.5 - progress));
         var l = Utilities.lerp(bounceProgress, 20, 50);
