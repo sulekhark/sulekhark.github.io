@@ -123,12 +123,11 @@ var MultiplyVariantStage = Utilities.createSubclass(Stage,
 
     animate: function()
     {
+	console.log("SRK: HELLO ");
         for (var i = 0; i < this._offsetIndex; ++i) {
             var tile = this.tiles[i];
             tile.active = true;
             tile.element.style[tile.visibleCSS[0]] = tile.visibleCSS[2];
-            // tile.rotate += tile.step;
-            // tile.element.style.transform = "rotate(" + tile.rotate + "deg)";
         }
 
         for (var i = this._offsetIndex; i < this.tiles.length && this.tiles[i].active; ++i) {
