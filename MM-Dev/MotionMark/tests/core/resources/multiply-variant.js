@@ -94,20 +94,14 @@ var MultiplyVariantStage = Utilities.createSubclass(Stage,
         tile.style[visibleCSS[0]] = visibleCSS[1];
 
         var distance = 1 / tileSize * this.size.multiply(0.5).subtract(new Point(x + halfTileSize, y + halfTileSize)).length();
-        var step = Math.max(3, distance / 1.5);
         this.tiles.push({
             element: tile,
+            rotate: rotateDeg,
+            step: Math.max(3, distance / 1.5),
             distance: distance,
             active: false,
             visibleCSS: visibleCSS,
         });
-        tile.style.setProperty("--rotate_deg", rotateDeg);
-        tile.style.setProperty("--rotate_step", step);
-        // Hardcoding test duration to 10 seconds (10000 milliseconds) for now. TBD: replace it with a computed value later.
-        tile.style.setProperty("--test_dur", 10000);
-        // Hardcoding to: test_dur (= 10000 ms) * frame_rate (= 60) / num_frames (= 4). TBD: replace with a computed value later.
-        tile.style.setProperty("--steps_in_each_kf", 150000);
-
     },
 
     complexity: function()
@@ -123,11 +117,12 @@ var MultiplyVariantStage = Utilities.createSubclass(Stage,
 
     animate: function()
     {
-	console.log("SRK: HELLO ");
         for (var i = 0; i < this._offsetIndex; ++i) {
             var tile = this.tiles[i];
             tile.active = true;
             tile.element.style[tile.visibleCSS[0]] = tile.visibleCSS[2];
+            tile.rotate += tile.step;
+            tile.element.style.transform = "rotate(" + tile.rotate + "deg)";
         }
 
         for (var i = this._offsetIndex; i < this.tiles.length && this.tiles[i].active; ++i) {
