@@ -139,7 +139,7 @@ var MultiplyVariantStage = Utilities.createSubclass(Stage,
             tile.rotate += tile.step;
             tile.element.style.transform = "rotate(" + tile.rotate + "deg)";
             var influence = Math.max(.01, 1 - (tile.distance * this._distanceFactor));
-            tile.element.style.backgroundColor = hslPrefix + l * Math.tan(influence / 1.25) + "%," + influence + ")";
+            // tile.element.style.backgroundColor = hslPrefix + l * Math.tan(influence / 1.25) + "%," + influence + ")";
         }
     }
 });
