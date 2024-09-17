@@ -124,7 +124,7 @@ var MultiplyVariantStage = Utilities.createSubclass(Stage,
             var tile = this.tiles[i];
             tile.active = true;
             tile.element.style[tile.visibleCSS[0]] = tile.visibleCSS[2];
-            var influence = Math.max(0.1, 1 - (tile.distance * this._distanceFactor));
+            var influence = Math.max(0.2, 1 - (tile.distance * this._distanceFactor));
             tile.element.style.setProperty("--hsla_influence", influence);
         }
 
@@ -137,7 +137,7 @@ var MultiplyVariantStage = Utilities.createSubclass(Stage,
 
     animate: function()
     {
-	console.log("SRK: VERSION 8 ");
+	console.log("SRK: VERSION 9 ");
         for (var i = 0; i < this._offsetIndex && i < 10; ++i) {
             var tile = this.tiles[i];
             const rotation = window.getComputedStyle(tile.element).getPropertyValue('transform');
