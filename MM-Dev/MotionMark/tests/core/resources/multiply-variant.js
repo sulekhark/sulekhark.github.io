@@ -94,7 +94,6 @@ var MultiplyVariantStage = Utilities.createSubclass(Stage,
         tile.style[visibleCSS[0]] = visibleCSS[1];
 
         var distance = 1 / tileSize * this.size.multiply(0.5).subtract(new Point(x + halfTileSize, y + halfTileSize)).length();
-	console.log("SRK: x, y, distance is: " + x + "  " + y + "  " + distance);
         this.tiles.push({
             element: tile,
             rotate: rotateDeg,
@@ -114,11 +113,22 @@ var MultiplyVariantStage = Utilities.createSubclass(Stage,
     {
         this._offsetIndex = Math.max(0, Math.min(this._offsetIndex + count, this.tiles.length));
         this._distanceFactor = 1.5 * (1 - 0.5 * Math.max(this._offsetIndex - this._centerSpiralCount, 0) / this._sidePanelCount) / Math.sqrt(this._offsetIndex);
+
+        for (var i = 0; i < this._offsetIndex; ++i) {
+            var tile = this.tiles[i];
+            tile.active = true;
+            tile.element.style[tile.visibleCSS[0]] = tile.visibleCSS[2];
+        }
+
+        for (var i = this._offsetIndex; i < this.tiles.length && this.tiles[i].active; ++i) {
+            var tile = this.tiles[i];
+            tile.active = false;
+            tile.element.style[tile.visibleCSS[0]] = tile.visibleCSS[1];
+        }
     },
 
     animate: function()
     {
-	console.log("SRK: bmk timestamp is: " + this._benchmark.timestamp);
         var progress = this._benchmark.timestamp % 10000 / 10000;
         var bounceProgress = Math.sin(2 * Math.abs( 0.5 - progress));
         var l = Utilities.lerp(bounceProgress, 20, 50);
@@ -126,19 +136,10 @@ var MultiplyVariantStage = Utilities.createSubclass(Stage,
 
         for (var i = 0; i < this._offsetIndex; ++i) {
             var tile = this.tiles[i];
-            tile.active = true;
-            tile.element.style[tile.visibleCSS[0]] = tile.visibleCSS[2];
             tile.rotate += tile.step;
             tile.element.style.transform = "rotate(" + tile.rotate + "deg)";
-
             var influence = Math.max(.01, 1 - (tile.distance * this._distanceFactor));
             tile.element.style.backgroundColor = hslPrefix + l * Math.tan(influence / 1.25) + "%," + influence + ")";
-        }
-
-        for (var i = this._offsetIndex; i < this.tiles.length && this.tiles[i].active; ++i) {
-            var tile = this.tiles[i];
-            tile.active = false;
-            tile.element.style[tile.visibleCSS[0]] = tile.visibleCSS[1];
         }
     }
 });
