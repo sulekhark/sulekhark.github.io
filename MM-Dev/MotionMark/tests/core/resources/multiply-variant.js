@@ -105,7 +105,7 @@ var MultiplyVariantStage = Utilities.createSubclass(Stage,
         tile.style.setProperty("--rotate_step", step + "deg");
         // Hardcoding test duration to 10 seconds for now. TBD: replace it with a computed value later.
         tile.style.setProperty("--test_dur", 10);
-        // Hardcoding to: test_dur (= 10s) * frame_rate (= 60fps) / num_frames (= 4). TBD: replace with a computed value later.
+        // Hardcoding to: test_dur (= 10s) * frame_rate (= 60fps) / num_key_frames (= 4). TBD: replace with a computed value later.
         tile.style.setProperty("--steps_in_each_kf", 150);
 
     },
