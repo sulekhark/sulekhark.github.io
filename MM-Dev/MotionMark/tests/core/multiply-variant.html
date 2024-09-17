@@ -67,9 +67,18 @@
         animation-direction: normal;
     }
 
+    /*****
     @keyframes turn {
         100%  {background-color: hsla(360, 100%, 25%, 0.3);
                transform: rotate(calc(var(--rotate_deg) + var(--rotate_step) * var(--steps_in_each_kf) * 4));}
+    }
+    ********/
+    @keyframes turn {
+        0%   {transform: rotate(var(--rotate_deg));}
+        25%  {transform: rotate(calc(var(--rotate-deg) + var(--rotate_step) * var(--steps_in_each_kf)));}
+        50%  {transform: rotate(calc(var(--rotate-deg) + var(--rotate_step) * var(--steps_in_each_kf) * 2));}
+        75%  {transform: rotate(calc(var(--rotate-deg) + var(--rotate_step) * var(--steps_in_each_kf) * 3));}
+        100% {transform: rotate(calc(var(--rotate_deg) + var(--rotate_step) * var(--steps_in_each_kf) * 4));}
     }
 
     #stage .div-0 {
@@ -104,16 +113,6 @@
 	background-color: hsla(120, 100%, 25%, 0.3);
     }
 
-    /*********
-
-    @keyframes turn {
-        0%   {transform: rotate(var(--rotate_deg));}
-        25%  {transform: rotate(calc(var(--rotate-deg) + var(--rotate_step) * var(--steps_in_each_kf)));}
-        50%  {transform: rotate(calc(var(--rotate-deg) + var(--rotate_step) * var(--steps_in_each_kf) * 2));}
-        75%  {transform: rotate(calc(var(--rotate-deg) + var(--rotate_step) * var(--steps_in_each_kf) * 3));}
-        100% {transform: rotate(calc(var(--rotate_deg) + var(--rotate_step) * var(--steps_in_each_kf) * 4));}
-    }
-    ***********/
 
     </style>
 </head>
