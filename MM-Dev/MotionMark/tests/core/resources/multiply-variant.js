@@ -137,7 +137,7 @@ var MultiplyVariantStage = Utilities.createSubclass(Stage,
 
     animate: function()
     {
-	console.log("SRK: VERSION 9 ");
+	console.log("SRK: VERSION 10 ");
         for (var i = 0; i < this._offsetIndex && i < 10; ++i) {
             var tile = this.tiles[i];
             const rotation = window.getComputedStyle(tile.element).getPropertyValue('transform');
