@@ -44,6 +44,8 @@ var MultiplyVariantStage = Utilities.createSubclass(Stage,
         if (options.visibleCSS)
             this.visibleCSS = options.visibleCSS;
 
+	console.log("Multiply with CSS animations: Version 1.1 ");
+
         // Fill the scene with elements
         var x = Math.round((this.size.width - tileSize) / 2);
         var y = Math.round((this.size.height - tileSize) / 2);
@@ -137,12 +139,6 @@ var MultiplyVariantStage = Utilities.createSubclass(Stage,
 
     animate: function()
     {
-	console.log("SRK: VERSION 1 ");
-        for (var i = 0; i < this._offsetIndex && i < 10; ++i) {
-            var tile = this.tiles[i];
-            const rotation = window.getComputedStyle(tile.element).getPropertyValue('transform');
-            // console.log(rotation);
-	}
     }
 });
 
