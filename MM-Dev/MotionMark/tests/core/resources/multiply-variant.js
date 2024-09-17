@@ -103,8 +103,8 @@ var MultiplyVariantStage = Utilities.createSubclass(Stage,
         });
         tile.style.setProperty("--rotate_deg", rotateDeg);
         tile.style.setProperty("--rotate_step", step);
-        // Hardcoding test duration to 10 seconds (10000 milliseconds) for now. TBD: replace it with a computed value later.
-        tile.style.setProperty("--test_dur", 10000);
+        // Hardcoding test duration to 10 seconds for now. TBD: replace it with a computed value later.
+        tile.style.setProperty("--test_dur", 10);
         // Hardcoding to: test_dur (= 10000 ms) * frame_rate (= 60) / num_frames (= 4). TBD: replace with a computed value later.
         tile.style.setProperty("--steps_in_each_kf", 150000);
 
@@ -123,7 +123,7 @@ var MultiplyVariantStage = Utilities.createSubclass(Stage,
 
     animate: function()
     {
-	console.log("SRK: HELLO 5 ");
+	console.log("SRK: HELLO 6 ");
         for (var i = 0; i < this._offsetIndex; ++i) {
             var tile = this.tiles[i];
             tile.active = true;
