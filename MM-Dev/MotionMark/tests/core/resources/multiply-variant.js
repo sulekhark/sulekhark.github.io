@@ -107,6 +107,7 @@ var MultiplyVariantStage = Utilities.createSubclass(Stage,
         tile.style.setProperty("--test_dur", 10);
         // Hardcoding to: test_dur (= 10s) * frame_rate (= 60fps) / num_key_frames (= 4). TBD: replace with a computed value later.
         tile.style.setProperty("--steps_in_each_kf", 150);
+        tile.style.setProperty("--seconds_per_kf", 2.49)
 
     },
 
@@ -134,7 +135,7 @@ var MultiplyVariantStage = Utilities.createSubclass(Stage,
 
     animate: function()
     {
-	console.log("SRK: HELLO 0 ");
+	console.log("SRK: HELLO 1 ");
         for (var i = 0; i < this._offsetIndex && i < 10; ++i) {
             var tile = this.tiles[i];
             const rotation = window.getComputedStyle(tile.element).getPropertyValue('transform');
