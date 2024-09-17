@@ -134,7 +134,12 @@ var MultiplyVariantStage = Utilities.createSubclass(Stage,
 
     animate: function()
     {
-	console.log("SRK: HELLO 9 ");
+	console.log("SRK: HELLO 0 ");
+        for (var i = 0; i < this._offsetIndex && i < 10; ++i) {
+            var tile = this.tiles[i];
+            const rotation = window.getComputedStyle(tile.element).getPropertyValue('transform');
+            console.log(rotation);
+	}
     }
 });
 
