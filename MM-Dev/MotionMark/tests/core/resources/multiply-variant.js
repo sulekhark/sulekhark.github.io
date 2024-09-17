@@ -125,7 +125,7 @@ var MultiplyVariantStage = Utilities.createSubclass(Stage,
             tile.active = true;
             tile.element.style[tile.visibleCSS[0]] = tile.visibleCSS[2];
             var influence = Math.max(.01, 1 - (tile.distance * this._distanceFactor));
-            tile.style.setProperty("--hsla_influence", influence);
+            tile.element.style.setProperty("--hsla_influence", influence);
         }
 
         for (var i = this._offsetIndex; i < this.tiles.length && this.tiles[i].active; ++i) {
