@@ -117,21 +117,13 @@ var MultiplyVariantStage = Utilities.createSubclass(Stage,
 
     animate: function()
     {
-        var progress = this._benchmark.timestamp % 10000 / 10000;
-        var bounceProgress = Math.sin(2 * Math.abs( 0.5 - progress));
-        var l = Utilities.lerp(bounceProgress, 20, 50);
-        var hslPrefix = "hsla(" + Utilities.lerp(progress, 0, 360) + ",100%,";
-
         for (var i = 0; i < this._offsetIndex; ++i) {
             var tile = this.tiles[i];
             tile.active = true;
             tile.element.style[tile.visibleCSS[0]] = tile.visibleCSS[2];
             tile.rotate += tile.step;
             tile.element.style.transform = "rotate(" + tile.rotate + "deg)";
-
-            var influence = Math.max(.01, 1 - (tile.distance * this._distanceFactor));
-            // tile.element.style.backgroundColor = hslPrefix + l * Math.tan(influence / 1.25) + "%," + influence + ")";
-            tile.element.style.backgroundColor = "hsla(120, 100%, 25%, 0.3)";
+            // tile.element.style.backgroundColor = "hsla(120, 100%, 25%, 0.3)";
         }
 
         for (var i = this._offsetIndex; i < this.tiles.length && this.tiles[i].active; ++i) {
