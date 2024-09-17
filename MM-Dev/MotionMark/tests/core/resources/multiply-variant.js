@@ -123,7 +123,7 @@ var MultiplyVariantStage = Utilities.createSubclass(Stage,
 
     animate: function()
     {
-	console.log("SRK: HELLO 1 ");
+	console.log("SRK: HELLO 2 ");
 	/********
         for (var i = 0; i < this._offsetIndex; ++i) {
             var tile = this.tiles[i];
