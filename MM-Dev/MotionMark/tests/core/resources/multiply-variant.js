@@ -119,11 +119,6 @@ var MultiplyVariantStage = Utilities.createSubclass(Stage,
     {
         this._offsetIndex = Math.max(0, Math.min(this._offsetIndex + count, this.tiles.length));
         this._distanceFactor = 1.5 * (1 - 0.5 * Math.max(this._offsetIndex - this._centerSpiralCount, 0) / this._sidePanelCount) / Math.sqrt(this._offsetIndex);
-    },
-
-    animate: function()
-    {
-	console.log("SRK: HELLO 8 ");
         for (var i = 0; i < this._offsetIndex; ++i) {
             var tile = this.tiles[i];
             tile.active = true;
@@ -135,6 +130,11 @@ var MultiplyVariantStage = Utilities.createSubclass(Stage,
             tile.active = false;
             tile.element.style[tile.visibleCSS[0]] = tile.visibleCSS[1];
         }
+    },
+
+    animate: function()
+    {
+	console.log("SRK: HELLO 9 ");
     }
 });
 
