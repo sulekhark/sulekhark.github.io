@@ -62,7 +62,7 @@
     @property --hsla_influence {
       syntax: "<number>";
       inherits: false;
-      initial-value: 0.01;
+      initial-value: 0.9;
     }
 
     #stage {
@@ -81,17 +81,17 @@
 
     @keyframes turn {
         0%   {transform: rotate(var(--rotate_deg));
-              /* background-color: hsla(0, 100%, calc(calc(260 + 430 * sin(0.5)) * tan(calc(var(--hsla_influence) / 1.25)))%, calc(var(--hsla_influence)+ 0.7));} */
-              background-color: hsla(0, 100%, 50%, 0.9);}
+              /* background-color: hsla(0, 100%, calc(270 * tan(calc(var(--hsla_influence) / 1.25)))%, max(0.7, var(--hsla_influence)));} */
+              background-color: hsla(0, 100%, 50%, max(0.7, var(--hsla_influence)));}
         25%  {transform: rotate(calc(var(--rotate-deg) + var(--rotate_step) * var(--steps_per_kf)));
-              /* background-color: hsla(calc(360 * mod(var(--seconds_per_kf), 10) / 10), 100%, calc(calc(260 + 430 * sin(0.5)) * tan(calc(var(--hsla_influence) / 1.25)))%, calc(var(--hsla_influence)+ 0.7));} */
-              background-color: hsla(calc(360 * mod(var(--seconds_per_kf), 10) / 10), 100%, 50%, 0.7);}
+              /* background-color: hsla(calc(360 * mod(var(--seconds_per_kf), 10) / 10), 100%, calc(270 * tan(calc(var(--hsla_influence) / 1.25)))%, max(0.7, var(--hsla_influence)));} */
+              background-color: hsla(calc(360 * mod(var(--seconds_per_kf), 10) / 10), 100%, 50%, max(0.7, var(--hsla_influence)));}
         50%  {transform: rotate(calc(var(--rotate-deg) + var(--rotate_step) * var(--steps_per_kf) * 2));
-              background-color: hsla(calc(360 * mod(calc(var(--seconds_per_kf) * 2), 10) / 10), 100%, calc(calc(260 + 430 * sin(0.5)) * tan(calc(var(--hsla_influence) / 1.25)))%, calc(var(--hsla_influence)+ 0.7));}
+              background-color: hsla(calc(360 * mod(calc(var(--seconds_per_kf) * 2), 10) / 10), 100%, calc(270 * tan(calc(var(--hsla_influence) / 1.25)))%, max(0.7, var(--hsla_influence)));}
         75%  {transform: rotate(calc(var(--rotate-deg) + var(--rotate_step) * var(--steps_per_kf) * 3));
-              background-color: hsla(calc(360 * mod(calc(var(--seconds_per_kf) * 3), 10) / 10), 100%, calc(calc(260 + 430 * sin(0.5)) * tan(calc(var(--hsla_influence) / 1.25)))%, calc(var(--hsla_influence)+ 0.7));}
+              background-color: hsla(calc(360 * mod(calc(var(--seconds_per_kf) * 3), 10) / 10), 100%, calc(270 * tan(calc(var(--hsla_influence) / 1.25)))%, max(0.7, var(--hsla_influence)));}
         100% {transform: rotate(calc(var(--rotate_deg) + var(--rotate_step) * var(--steps_per_kf) * 4));
-              background-color: hsla(calc(360 * mod(calc(var(--seconds_per_kf) * 4), 10) / 10), 100%, calc(calc(260 + 430 * sin(0.5)) * tan(calc(var(--hsla_influence) / 1.25)))%, calc(var(--hsla_influence)+ 0.7));}
+              background-color: hsla(calc(360 * mod(calc(var(--seconds_per_kf) * 4), 10) / 10), 100%, calc(270 * tan(calc(var(--hsla_influence) / 1.25)))%, max(0.7, var(--hsla_influence)));}
     }
 
     #stage .div-0 {
