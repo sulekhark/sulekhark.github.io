@@ -101,7 +101,7 @@ var MultiplyVariantStage = Utilities.createSubclass(Stage,
             active: false,
             visibleCSS: visibleCSS,
         });
-        tile.style.setProperty("--rotate_deg", 720 + "deg");
+        tile.style.setProperty("--rotate_deg", 360 + "deg");
         tile.style.setProperty("--rotate_step", step + "deg");
         // Hardcoding test duration to 10 seconds for now. TBD: replace it with a computed value later.
         tile.style.setProperty("--test_dur", 10);
@@ -123,7 +123,7 @@ var MultiplyVariantStage = Utilities.createSubclass(Stage,
 
     animate: function()
     {
-	console.log("SRK: HELLO 4 ");
+	console.log("SRK: HELLO 5 ");
         for (var i = 0; i < this._offsetIndex; ++i) {
             var tile = this.tiles[i];
             tile.active = true;
