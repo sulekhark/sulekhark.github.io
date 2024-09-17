@@ -29,6 +29,7 @@
     <link rel="stylesheet" type="text/css" href="../resources/stage.css">
     <style type="text/css">
 
+    /********
     @property --rotate_deg {
       syntax: "<angle>";
       inherits: false;
@@ -46,6 +47,7 @@
       inherits: false;
       initial-value: 0;
     }
+    ***********/
 
     #stage {
         background-color: #000;
@@ -58,6 +60,16 @@
     #stage .div-0 {
         border-top-right-radius: 100%;
 	background-color: hsla(120, 100%, 25%, 0.3);
+
+        animation-name: turn;
+        animation-duration: 5s;
+        animation-timing-function:linear; 
+        animation-iteration-count: infinite;
+        animation-direction: normal;
+    }
+
+    @keyframes turn {
+        100%  {background-color: hsla(240, 100%, 25%, 0.3);}
     }
 
     #stage .div-1 {
@@ -87,6 +99,7 @@
 	background-color: hsla(120, 100%, 25%, 0.3);
     }
 
+    /*********
     #stage .div-1 {
         animation-name: turn;
         animation-duration: calc(var(--test_dur) * 1s);
@@ -110,6 +123,7 @@
         75%  {transform: rotate(calc(var(--rotate-deg) + var(--rotate_step) * var(--steps_in_each_kf) * 3));}
         100% {transform: rotate(calc(var(--rotate_deg) + var(--rotate_step) * var(--steps_in_each_kf) * 4));}
     }
+    ***********/
 
     </style>
 </head>
