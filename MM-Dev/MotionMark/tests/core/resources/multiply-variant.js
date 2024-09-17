@@ -91,7 +91,7 @@ var MultiplyVariantStage = Utilities.createSubclass(Stage,
         tile.style.width = tileSize + 'px';
         tile.style.height = tileSize + 'px';
         var visibleCSS = this.visibleCSS[this.tiles.length % this.visibleCSS.length];
-        tile.style[visibleCSS[0]] = visibleCSS[2];
+        tile.style[visibleCSS[0]] = visibleCSS[1];
 
         var distance = 1 / tileSize * this.size.multiply(0.5).subtract(new Point(x + halfTileSize, y + halfTileSize)).length();
         var step = Math.max(3, distance / 1.5);
@@ -123,8 +123,7 @@ var MultiplyVariantStage = Utilities.createSubclass(Stage,
 
     animate: function()
     {
-	console.log("SRK: HELLO 3 ");
-	/********
+	console.log("SRK: HELLO 4 ");
         for (var i = 0; i < this._offsetIndex; ++i) {
             var tile = this.tiles[i];
             tile.active = true;
@@ -136,7 +135,6 @@ var MultiplyVariantStage = Utilities.createSubclass(Stage,
             tile.active = false;
             tile.element.style[tile.visibleCSS[0]] = tile.visibleCSS[1];
         }
-	*********/
     }
 });
 
