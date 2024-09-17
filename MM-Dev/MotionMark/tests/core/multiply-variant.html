@@ -69,22 +69,40 @@
     }
 
     @keyframes turn {
-        100%  {background-color: hsla(240, 100%, 25%, 0.3);}
+        100%  {background-color: hsla(360, 100%, 25%, 0.3);}
     }
 
     #stage .div-1 {
         border-top-left-radius: 100%;
         background-color: hsla(120, 100%, 25%, 0.3);
+
+        animation-name: turn;
+        animation-duration: 5s;
+        animation-timing-function:linear; 
+        animation-iteration-count: infinite;
+        animation-direction: normal;
     }
 
     #stage .div-2 {
         border-bottom-left-radius: 100%;
         background-color: hsla(120, 100%, 25%, 0.3);
+
+        animation-name: turn;
+        animation-duration: 5s;
+        animation-timing-function:linear; 
+        animation-iteration-count: infinite;
+        animation-direction: normal;
     }
 
     #stage .div-3 {
         border-bottom-right-radius: 100%;
 	background-color: hsla(120, 100%, 25%, 0.3);
+
+        animation-name: turn;
+        animation-duration: 5s;
+        animation-timing-function:linear; 
+        animation-iteration-count: infinite;
+        animation-direction: normal;
     }
 
     #stage .div-4 {
