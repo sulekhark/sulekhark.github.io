@@ -1,3 +1,6 @@
 [submodule "MotionMark"]
 	path = MotionMark
 	url = https://github.com/WebKit/MotionMark.git
+[submodule "Speedometer"]
+	path = Speedometer
+	url = https://github.com/WebKit/Speedometer.git
