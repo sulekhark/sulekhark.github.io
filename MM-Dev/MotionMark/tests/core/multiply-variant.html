@@ -73,23 +73,17 @@
         position: absolute;
 
         animation-name: turn;
-        animation-duration: calc(var(--test_dur) * 1s);
-        animation-timing-function: steps(var(--steps_per_kf), jump-start); 
+        animation-duration: 10s;
         animation-iteration-count: infinite;
         animation-direction: normal;
     }
 
     @keyframes turn {
-        0%   {transform: rotate(var(--rotate_deg));
-              background-color: hsla(0, 100%, 50%, max(0.7, var(--hsla_influence)));}
-        25%  {transform: rotate(calc(var(--rotate-deg) + var(--rotate_step) * var(--steps_per_kf)));
-              background-color: hsla(calc(360 * mod(var(--seconds_per_kf), 10) / 10), 100%, 60%, max(0.7, var(--hsla_influence)));}
-        50%  {transform: rotate(calc(var(--rotate-deg) + var(--rotate_step) * var(--steps_per_kf) * 2));
-              background-color: hsla(calc(360 * mod(calc(var(--seconds_per_kf) * 2), 10) / 10), 100%, 50%, max(0.7, var(--hsla_influence)));}
-        75%  {transform: rotate(calc(var(--rotate-deg) + var(--rotate_step) * var(--steps_per_kf) * 3));
-              background-color: hsla(calc(360 * mod(calc(var(--seconds_per_kf) * 3), 10) / 10), 100%, 60%, max(0.7, var(--hsla_influence)));}
-        100% {transform: rotate(calc(var(--rotate_deg) + var(--rotate_step) * var(--steps_per_kf) * 4));
-              background-color: hsla(calc(360 * mod(calc(var(--seconds_per_kf) * 4), 10) / 10), 100%, 50%, max(0.7, var(--hsla_influence)));}
+        0%   {transform: rotate(0deg);}
+        25%  {transform: rotate(90deg);}
+        50%  {transform: rotate(180deg);}
+        75%  {transform: rotate(270deg);}
+        100% {transform: rotate(360deg);}
     }
 
 
