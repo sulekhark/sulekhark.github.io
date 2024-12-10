@@ -103,13 +103,13 @@ var MultiplyVariantStage = Utilities.createSubclass(Stage,
             active: false,
             visibleCSS: visibleCSS,
         });
-        tile.style.setProperty("--rotate_deg", rotateDeg + "deg");
-        tile.style.setProperty("--rotate_step", step + "deg");
+        // tile.style.setProperty("--rotate_deg", rotateDeg + "deg");
+        // tile.style.setProperty("--rotate_step", step + "deg");
         // Hardcoding test duration to 10 seconds for now. TBD: replace it with a computed value later.
-        tile.style.setProperty("--test_dur", 10);
+        // tile.style.setProperty("--test_dur", 10);
         // Hardcoding to: test_dur (= 10s) * frame_rate (= 60fps) / num_key_frames (= 4). TBD: replace with a computed value later.
-        tile.style.setProperty("--steps_per_kf", 150);
-        tile.style.setProperty("--seconds_per_kf", 2.49)
+        // tile.style.setProperty("--steps_per_kf", 150);
+        // tile.style.setProperty("--seconds_per_kf", 2.49)
 
     },
 
@@ -121,13 +121,13 @@ var MultiplyVariantStage = Utilities.createSubclass(Stage,
     tune: function(count)
     {
         this._offsetIndex = Math.max(0, Math.min(this._offsetIndex + count, this.tiles.length));
-        this._distanceFactor = 1.5 * (1 - 0.5 * Math.max(this._offsetIndex - this._centerSpiralCount, 0) / this._sidePanelCount) / Math.sqrt(this._offsetIndex);
+        // this._distanceFactor = 1.5 * (1 - 0.5 * Math.max(this._offsetIndex - this._centerSpiralCount, 0) / this._sidePanelCount) / Math.sqrt(this._offsetIndex);
         for (var i = 0; i < this._offsetIndex; ++i) {
             var tile = this.tiles[i];
             tile.active = true;
             tile.element.style[tile.visibleCSS[0]] = tile.visibleCSS[2];
-            var influence = Math.max(0.2, 1 - (tile.distance * this._distanceFactor));
-            tile.element.style.setProperty("--hsla_influence", influence);
+            // var influence = Math.max(0.2, 1 - (tile.distance * this._distanceFactor));
+            // tile.element.style.setProperty("--hsla_influence", influence);
         }
 
         for (var i = this._offsetIndex; i < this.tiles.length && this.tiles[i].active; ++i) {
