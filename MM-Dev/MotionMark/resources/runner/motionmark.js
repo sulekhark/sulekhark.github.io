@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018-2020 Apple Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -22,418 +22,50 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
- ResultsDashboard = Utilities.createClass(
-    function(version, options, testData)
-    {
-        this._iterationsSamplers = [];
-        this._options = options;
-        this._results = null;
-        this._version = version;
-        this._targetFrameRate = options["frame-rate"];
-        this._systemFrameRate = options["system-frame-rate"];
-        if (testData) {
-            this._iterationsSamplers = testData;
-            this._processData();
-        }
-    }, {
 
-    push: function(suitesSamplers)
-    {
-        this._iterationsSamplers.push(suitesSamplers);
-    },
-
-    _processData: function()
-    {
-        this._results = {};
-        this._results[Strings.json.results.iterations] = [];
-
-        var iterationsScores = [];
-        this._iterationsSamplers.forEach(function(iteration, index) {
-            var testsScores = [];
-            var testsLowerBoundScores = [];
-            var testsUpperBoundScores = [];
-
-            var result = {};
-            this._results[Strings.json.results.iterations][index] = result;
-
-            var suitesResult = {};
-            result[Strings.json.results.tests] = suitesResult;
-
-            for (var suiteName in iteration) {
-                var suiteData = iteration[suiteName];
-
-                var suiteResult = {};
-                suitesResult[suiteName] = suiteResult;
-
-                for (var testName in suiteData) {
-                    if (!suiteData[testName][Strings.json.result])
-                        this.calculateScore(suiteData[testName]);
-
-                    suiteResult[testName] = suiteData[testName][Strings.json.result];
-                    delete suiteData[testName][Strings.json.result];
-
-                    testsScores.push(suiteResult[testName][Strings.json.score]);
-                    testsLowerBoundScores.push(suiteResult[testName][Strings.json.scoreLowerBound]);
-                    testsUpperBoundScores.push(suiteResult[testName][Strings.json.scoreUpperBound]);
-                }
-            }
-
-            result[Strings.json.score] = Statistics.geometricMean(testsScores);
-            result[Strings.json.scoreLowerBound] = Statistics.geometricMean(testsLowerBoundScores);
-            result[Strings.json.scoreUpperBound] = Statistics.geometricMean(testsUpperBoundScores);
-            iterationsScores.push(result[Strings.json.score]);
-        }, this);
-
-        this._results[Strings.json.version] = this._version;
-        this._results[Strings.json.fps] = this._targetFrameRate;
-        this._results[Strings.json.score] = Statistics.sampleMean(iterationsScores.length, iterationsScores.reduce(function(a, b) { return a + b; }));
-        this._results[Strings.json.scoreLowerBound] = this._results[Strings.json.results.iterations][0][Strings.json.scoreLowerBound];
-        this._results[Strings.json.scoreUpperBound] = this._results[Strings.json.results.iterations][0][Strings.json.scoreUpperBound];
-    },
-
-    calculateScore: function(data)
-    {
-        var result = {};
-        data[Strings.json.result] = result;
-        var samples = data[Strings.json.samples];
-        const desiredFrameLength = 1000 / this._targetFrameRate;
-
-        function findRegression(series, profile) {
-            var minIndex = Math.round(.025 * series.length);
-            var maxIndex = Math.round(.975 * (series.length - 1));
-            var minComplexity = series.getFieldInDatum(minIndex, Strings.json.complexity);
-            var maxComplexity = series.getFieldInDatum(maxIndex, Strings.json.complexity);
-
-            if (Math.abs(maxComplexity - minComplexity) < 20 && maxIndex - minIndex < 20) {
-                minIndex = 0;
-                maxIndex = series.length - 1;
-                minComplexity = series.getFieldInDatum(minIndex, Strings.json.complexity);
-                maxComplexity = series.getFieldInDatum(maxIndex, Strings.json.complexity);
-            }
-
-            var frameTypeIndex = series.fieldMap[Strings.json.frameType];
-            var complexityIndex = series.fieldMap[Strings.json.complexity];
-            var frameLengthIndex = series.fieldMap[Strings.json.frameLength];
-            var regressionOptions = { desiredFrameLength: desiredFrameLength };
-            if (profile)
-                regressionOptions.preferredProfile = profile;
-
-            var regressionSamples = series.slice(minIndex, maxIndex + 1);
-            var animationSamples = regressionSamples.data.filter((sample) => sample[frameTypeIndex] == Strings.json.animationFrameType);
-            var regressionData = animationSamples.map((sample) => [ sample[complexityIndex], sample[frameLengthIndex] ]);
-
-            var regression = new Regression(regressionData, minIndex, maxIndex, regressionOptions);
-            return {
-                minComplexity: minComplexity,
-                maxComplexity: maxComplexity,
-                samples: regressionSamples,
-                regression: regression,
-            };
-        }
-
-        // Convert these samples into SampleData objects if needed
-        [Strings.json.complexity, Strings.json.controller].forEach(function(seriesName) {
-            var series = samples[seriesName];
-            if (series && !(series instanceof SampleData))
-                samples[seriesName] = new SampleData(series.fieldMap, series.data);
-        });
-
-        var isRampController = this._options["controller"] == "ramp";
-        var predominantProfile = "";
-        if (isRampController) {
-            var profiles = {};
-            data[Strings.json.controller].forEach(function(regression) {
-                if (regression[Strings.json.regressions.profile]) {
-                    var profile = regression[Strings.json.regressions.profile];
-                    profiles[profile] = (profiles[profile] || 0) + 1;
-                }
-            });
-
-            var maxProfileCount = 0;
-            for (var profile in profiles) {
-                if (profiles[profile] > maxProfileCount) {
-                    predominantProfile = profile;
-                    maxProfileCount = profiles[profile];
-                }
-            }
-        }
-
-        var regressionResult = findRegression(samples[Strings.json.complexity], predominantProfile);
-        var calculation = regressionResult.regression;
-        result[Strings.json.complexity] = {};
-        result[Strings.json.complexity][Strings.json.regressions.segment1] = [
-            [regressionResult.minComplexity, calculation.s1 + calculation.t1 * regressionResult.minComplexity],
-            [calculation.complexity, calculation.s1 + calculation.t1 * calculation.complexity]
-        ];
-        result[Strings.json.complexity][Strings.json.regressions.segment2] = [
-            [calculation.complexity, calculation.s2 + calculation.t2 * calculation.complexity],
-            [regressionResult.maxComplexity, calculation.s2 + calculation.t2 * regressionResult.maxComplexity]
-        ];
-        result[Strings.json.complexity][Strings.json.complexity] = calculation.complexity;
-        result[Strings.json.complexity][Strings.json.measurements.stdev] = Math.sqrt(calculation.error / samples[Strings.json.complexity].length);
-
-        result[Strings.json.fps] = data.targetFPS;
-
-        if (isRampController) {
-            var timeComplexity = new Experiment;
-            data[Strings.json.controller].forEach(function(regression) {
-                timeComplexity.sample(regression[Strings.json.complexity]);
-            });
-
-            var experimentResult = {};
-            result[Strings.json.controller] = experimentResult;
-            experimentResult[Strings.json.score] = timeComplexity.mean();
-            experimentResult[Strings.json.measurements.average] = timeComplexity.mean();
-            experimentResult[Strings.json.measurements.stdev] = timeComplexity.standardDeviation();
-            experimentResult[Strings.json.measurements.percent] = timeComplexity.percentage();
-
-            const bootstrapIterations = 2500;
-            var bootstrapResult = Regression.bootstrap(regressionResult.samples.data, bootstrapIterations, function(resampleData) {
-                var complexityIndex = regressionResult.samples.fieldMap[Strings.json.complexity];
-                resampleData.sort(function(a, b) {
-                    return a[complexityIndex] - b[complexityIndex];
-                });
-
-                var resample = new SampleData(regressionResult.samples.fieldMap, resampleData);
-                var bootstrapRegressionResult = findRegression(resample, predominantProfile);
-                if (bootstrapRegressionResult.regression.t2 < 0) {
-                  // A positive slope means the frame rate decreased with increased complexity (which is the expected
-                  // benavior). OTOH, a negative slope means the framerate increased as the complexity increased. This
-                  // likely means the max complexity needs to be increased. None-the-less, if the slope is negative use
-                  // the max-complexity as the computed complexity (intersection of the two lines) does not tell us
-                  // the point when the browser could not handle the complexity, rather it tells us when the framerate
-                  // increased.
-                  return bootstrapRegressionResult.maxComplexity;
-                }
-                return bootstrapRegressionResult.regression.complexity;
-            }, .8);
-
-            result[Strings.json.complexity][Strings.json.bootstrap] = bootstrapResult;
-            result[Strings.json.score] = bootstrapResult.median;
-            result[Strings.json.scoreLowerBound] = bootstrapResult.confidenceLow;
-            result[Strings.json.scoreUpperBound] = bootstrapResult.confidenceHigh;
-        } else {
-            var marks = data[Strings.json.marks];
-            var samplingStartIndex = 0, samplingEndIndex = -1;
-            if (Strings.json.samplingStartTimeOffset in marks)
-                samplingStartIndex = marks[Strings.json.samplingStartTimeOffset].index;
-            if (Strings.json.samplingEndTimeOffset in marks)
-                samplingEndIndex = marks[Strings.json.samplingEndTimeOffset].index;
-
-            var averageComplexity = new Experiment;
-            var averageFrameLength = new Experiment;
-            var controllerSamples = samples[Strings.json.controller];
-            controllerSamples.forEach(function (sample, i) {
-                if (i >= samplingStartIndex && (samplingEndIndex == -1 || i < samplingEndIndex)) {
-                    averageComplexity.sample(controllerSamples.getFieldInDatum(sample, Strings.json.complexity));
-                    var smoothedFrameLength = controllerSamples.getFieldInDatum(sample, Strings.json.smoothedFrameLength);
-                    if (smoothedFrameLength && smoothedFrameLength != -1)
-                        averageFrameLength.sample(smoothedFrameLength);
-                }
-            });
-
-            var experimentResult = {};
-            result[Strings.json.controller] = experimentResult;
-            experimentResult[Strings.json.measurements.average] = averageComplexity.mean();
-            experimentResult[Strings.json.measurements.concern] = averageComplexity.concern(Experiment.defaults.CONCERN);
-            experimentResult[Strings.json.measurements.stdev] = averageComplexity.standardDeviation();
-            experimentResult[Strings.json.measurements.percent] = averageComplexity.percentage();
-
-            experimentResult = {};
-            result[Strings.json.frameLength] = experimentResult;
-            experimentResult[Strings.json.measurements.average] = 1000 / averageFrameLength.mean();
-            experimentResult[Strings.json.measurements.concern] = averageFrameLength.concern(Experiment.defaults.CONCERN);
-            experimentResult[Strings.json.measurements.stdev] = averageFrameLength.standardDeviation();
-            experimentResult[Strings.json.measurements.percent] = averageFrameLength.percentage();
-
-            result[Strings.json.score] = averageComplexity.score(Experiment.defaults.CONCERN);
-            result[Strings.json.scoreLowerBound] = result[Strings.json.score] - averageFrameLength.standardDeviation();
-            result[Strings.json.scoreUpperBound] = result[Strings.json.score] + averageFrameLength.standardDeviation();
-        }
-    },
-
-    get data()
-    {
-        return this._iterationsSamplers;
-    },
-
-    get results()
-    {
-        if (this._results)
-            return this._results[Strings.json.results.iterations];
-        this._processData();
-        return this._results[Strings.json.results.iterations];
-    },
-
-    get options()
-    {
-        return this._options;
-    },
-
-    get version()
-    {
-        return this._version;
-    },
-
-    _getResultsProperty: function(property)
-    {
-        if (this._results)
-            return this._results[property];
-        this._processData();
-        return this._results[property];
-    },
-
-    get score()
-    {
-        return this._getResultsProperty(Strings.json.score);
-    },
-
-    get scoreLowerBound()
-    {
-        return this._getResultsProperty(Strings.json.scoreLowerBound);
-    },
-
-    get scoreUpperBound()
-    {
-        return this._getResultsProperty(Strings.json.scoreUpperBound);
-    }
-});
-
-ResultsTable = Utilities.createClass(
-    function(element, headers)
-    {
-        this.element = element;
-        this._headers = headers;
-
-        this._flattenedHeaders = [];
-        this._headers.forEach(function(header) {
-            if (header.disabled)
-                return;
-
-            if (header.children)
-                this._flattenedHeaders = this._flattenedHeaders.concat(header.children);
-            else
-                this._flattenedHeaders.push(header);
-        }, this);
-
-        this._flattenedHeaders = this._flattenedHeaders.filter(function (header) {
-            return !header.disabled;
-        });
-
-        this.clear();
-    }, {
-
-    clear: function()
-    {
-        this.element.textContent = "";
-    },
-
-    _addHeader: function()
-    {
-        var thead = Utilities.createElement("thead", {}, this.element);
-        var row = Utilities.createElement("tr", {}, thead);
-
-        this._headers.forEach(function (header) {
-            if (header.disabled)
-                return;
-
-            var th = Utilities.createElement("th", {}, row);
-            if (header.title != Strings.text.graph)
-                th.innerHTML = header.title;
-            if (header.children)
-                th.colSpan = header.children.length;
-        });
-    },
-
-    _addBody: function()
-    {
-        this.tbody = Utilities.createElement("tbody", {}, this.element);
-    },
-
-    _addEmptyRow: function()
-    {
-        var row = Utilities.createElement("tr", {}, this.tbody);
-        this._flattenedHeaders.forEach(function (header) {
-            return Utilities.createElement("td", { class: "suites-separator" }, row);
-        });
-    },
-
-    _addTest: function(testName, testResult, options)
-    {
-        var row = Utilities.createElement("tr", {}, this.tbody);
-
-        this._flattenedHeaders.forEach(function (header) {
-            var td = Utilities.createElement("td", {}, row);
-            if (header.text == Strings.text.testName) {
-                td.textContent = testName;
-            } else if (typeof header.text == "string") {
-                var data = testResult[header.text];
-                if (typeof data == "number")
-                    data = data.toFixed(2);
-                td.innerHTML = data;
-            } else
-                td.innerHTML = header.text(testResult);
-        }, this);
-    },
-
-    _addIteration: function(iterationResult, iterationData, options)
-    {
-        var testsResults = iterationResult[Strings.json.results.tests];
-        for (var suiteName in testsResults) {
-            this._addEmptyRow();
-            var suiteResult = testsResults[suiteName];
-            var suiteData = iterationData[suiteName];
-            for (var testName in suiteResult)
-                this._addTest(testName, suiteResult[testName], options, suiteData[testName]);
-        }
-    },
-
-    showIterations: function(dashboard)
-    {
-        this.clear();
-        this._addHeader();
-        this._addBody();
-
-        var iterationsResults = dashboard.results;
-        iterationsResults.forEach(function(iterationResult, index) {
-            this._addIteration(iterationResult, dashboard.data[index], dashboard.options);
-        }, this);
-    }
-});
-
-window.benchmarkRunnerClient = {
-    iterationCount: 1,
-    options: null,
-    results: null,
-
-    initialize: function(suites, options)
+class BenchmarkRunnerClient {
+    iterationCount = 1;
+    options = null;
+    results = null;
+    
+    constructor(suites, options)
     {
         this.options = options;
-    },
+    }
 
-    willStartFirstIteration: function()
+    get scoreCalculator()
     {
-        this.results = new ResultsDashboard(Strings.version, this.options);
-    },
+        return this._scoreCalculator;
+    }
 
-    didRunSuites: function(suitesSamplers)
+    set scoreCalculator(calculator)
     {
-        this.results.push(suitesSamplers);
-    },
+        this._scoreCalculator = calculator;
+    }
 
-    didRunTest: function(testData)
+    willStartFirstIteration()
     {
-        this.results.calculateScore(testData);
-    },
+        this.scoreCalculator = new ScoreCalculator(new RunData(Strings.version, this.options));
+    }
 
-    didFinishLastIteration: function()
+    didRunSuites(suitesSamplers)
+    {
+        this._scoreCalculator.push(suitesSamplers);
+    }
+
+    didRunTest(testData)
+    {
+        this._scoreCalculator.calculateScore(testData);
+    }
+
+    didFinishLastIteration()
     {
         benchmarkController.showResults();
     }
-};
+}
 
-window.sectionsManager = {
-    showSection: function(sectionIdentifier, pushState)
+class SectionsManager {
+    showSection(sectionIdentifier, pushState)
     {
         var sections = document.querySelectorAll("main > section");
         for (var i = 0; i < sections.length; ++i) {
@@ -452,30 +84,30 @@ window.sectionsManager = {
 
         if (pushState)
             history.pushState({section: sectionIdentifier}, document.title);
-    },
+    }
 
-    setSectionVersion: function(sectionIdentifier, version)
+    setSectionVersion(sectionIdentifier, version)
     {
         document.querySelector("#" + sectionIdentifier + " .version").textContent = version;
-    },
+    }
 
-    setSectionScore: function(sectionIdentifier, score, confidence, fps)
+    setSectionScore(sectionIdentifier, score, confidence, fps)
     {
         if (fps && score)
             document.querySelector("#" + sectionIdentifier + " .score").textContent = `${score} @ ${fps}fps`;
         if (confidence)
             document.querySelector("#" + sectionIdentifier + " .confidence").textContent = confidence;
-    },
+    }
 
-    populateTable: function(tableIdentifier, headers, dashboard)
+    populateTable(tableIdentifier, headers, scoreCalculator)
     {
         var table = new ResultsTable(document.getElementById(tableIdentifier), headers);
-        table.showIterations(dashboard);
+        table.showIterations(scoreCalculator);
     }
-};
+}
 
-window.benchmarkController = {
-    benchmarkDefaultParameters: {
+class BenchmarkController {
+    benchmarkDefaultParameters = {
         "test-interval": 30,
         "display": "minimal",
         "tiles": "big",
@@ -488,29 +120,40 @@ window.benchmarkController = {
         "first-frame-minimum-length": 0,
         "system-frame-rate": 60,
         "frame-rate": 60,
-    },
+    };
 
-    initialize: async function()
+    async initialize()
     {
-        document.title = Strings.text.title.replace("%s", Strings.version);
-        document.querySelectorAll(".version").forEach(function(e) {
-            e.textContent = Strings.version;
-        });
+        this.updateUIStrings();
         benchmarkController.addOrientationListenerIfNecessary();
 
         this._startButton = document.getElementById("start-button");
         this._startButton.disabled = true;
         this._startButton.textContent = Strings.text.determininingFrameRate;
 
+        await this.detectFrameRate();
+    }
+    
+    async detectFrameRate(progressElement = undefined)
+    {
         let targetFrameRate;
         try {
-            targetFrameRate = await benchmarkController.determineFrameRate();
+            targetFrameRate = await this.determineFrameRate(progressElement);
         } catch (e) {
+            console.error('Frame rate detection failed ' + e);
         }
         this.frameRateDeterminationComplete(targetFrameRate);
-    },
+    }
     
-    frameRateDeterminationComplete: function(frameRate)
+    updateUIStrings()
+    {
+        document.title = Strings.text.title.replace("%s", Strings.version);
+        document.querySelectorAll(".version").forEach(function(e) {
+            e.textContent = Strings.version;
+        });
+    }
+    
+    frameRateDeterminationComplete(frameRate)
     {
         const frameRateLabel = document.getElementById("frame-rate-label");
 
@@ -530,9 +173,9 @@ window.benchmarkController = {
 
         this._startButton.textContent = Strings.text.runBenchmark;
         this._startButton.disabled = false;
-    },
+    }
 
-    determineCanvasSize: function()
+    determineCanvasSize()
     {
         var match = window.matchMedia("(max-device-width: 760px)");
         if (match.matches) {
@@ -553,9 +196,9 @@ window.benchmarkController = {
         }
 
         document.body.classList.add("large");
-    },
+    }
 
-    determineFrameRate: function(detectionProgressElement)
+    determineFrameRate(detectionProgressElement)
     {
         return new Promise((resolve, reject) => {
             let firstTimestamp;
@@ -604,9 +247,9 @@ window.benchmarkController = {
 
             requestAnimationFrame(tick);
         })
-    },
+    }
 
-    addOrientationListenerIfNecessary: function()
+    addOrientationListenerIfNecessary()
     {
         if (!("orientation" in window))
             return;
@@ -614,9 +257,9 @@ window.benchmarkController = {
         this.orientationQuery = window.matchMedia("(orientation: landscape)");
         this._orientationChanged(this.orientationQuery);
         this.orientationQuery.addListener(this._orientationChanged);
-    },
+    }
 
-    _orientationChanged: function(match)
+    _orientationChanged(match)
     {
         benchmarkController.isInLandscapeOrientation = match.matches;
         if (match.matches)
@@ -625,55 +268,60 @@ window.benchmarkController = {
             document.querySelector(".portrait-orientation-check").classList.remove("hidden");
 
         benchmarkController.updateStartButtonState();
-    },
+    }
 
-    updateStartButtonState: function()
+    updateStartButtonState()
     {
         document.getElementById("start-button").disabled = !this.isInLandscapeOrientation;
-    },
+    }
 
-    _startBenchmark: function(suites, options, frameContainerID)
+    _startBenchmark(suites, options, frameContainerID)
     {
         var configuration = document.body.className.match(/small|medium|large/);
         if (configuration)
             options[Strings.json.configuration] = configuration[0];
 
-        benchmarkRunnerClient.initialize(suites, options);
+        this.ensureRunnerClient(suites, options);
         var frameContainer = document.getElementById(frameContainerID);
-        var runner = new BenchmarkRunner(suites, frameContainer, benchmarkRunnerClient);
+        var runner = new BenchmarkRunner(suites, frameContainer, this.runnerClient);
         runner.runMultipleIterations();
 
         sectionsManager.showSection("test-container");
-    },
+    }
+    
+    ensureRunnerClient(suites, options)
+    {
+        this.runnerClient = new benchmarkRunnerClientClass(suites, options);
+    }
 
-    startBenchmark: async function()
+    async startBenchmark()
     {
         benchmarkController.determineCanvasSize();
 
         let options = this.benchmarkDefaultParameters;
         this._startBenchmark(Suites, options, "test-container");
-    },
+    }
 
-    showResults: function()
+    showResults()
     {
         if (!this.addedKeyEvent) {
             document.addEventListener("keypress", this.handleKeyPress, false);
             this.addedKeyEvent = true;
         }
 
-        const dashboard = benchmarkRunnerClient.results;
-        const score = dashboard.score;
-        const confidence = "±" + (Statistics.largestDeviationPercentage(dashboard.scoreLowerBound, score, dashboard.scoreUpperBound) * 100).toFixed(2) + "%";
-        const fps = dashboard._targetFrameRate;
-        sectionsManager.setSectionVersion("results", dashboard.version);
+        const scoreCalculator = this.runnerClient.scoreCalculator;
+        const score = scoreCalculator.score;
+        const confidence = "±" + (Statistics.largestDeviationPercentage(scoreCalculator.scoreLowerBound, score, scoreCalculator.scoreUpperBound) * 100).toFixed(2) + "%";
+        const fps = scoreCalculator.targetFrameRate;
+        sectionsManager.setSectionVersion("results", scoreCalculator.version);
         sectionsManager.setSectionScore("results", score.toFixed(2), confidence, fps);
-        sectionsManager.populateTable("results-header", Headers.testName, dashboard);
-        sectionsManager.populateTable("results-score", Headers.score, dashboard);
-        sectionsManager.populateTable("results-data", Headers.details, dashboard);
+        sectionsManager.populateTable("results-header", Headers.testName, scoreCalculator);
+        sectionsManager.populateTable("results-score", Headers.score, scoreCalculator);
+        sectionsManager.populateTable("results-data", Headers.details, scoreCalculator);
         sectionsManager.showSection("results", true);
-    },
+    }
 
-    handleKeyPress: function(event)
+    handleKeyPress(event)
     {
         switch (event.charCode)
         {
@@ -687,17 +335,17 @@ window.benchmarkController = {
             benchmarkController.selectResults(event.target);
             break;
         }
-    },
+    }
 
-    hideDebugInfo: function()
+    hideDebugInfo()
     {
         var overlay = document.getElementById("overlay");
         if (!overlay)
             return;
         document.body.removeChild(overlay);
-    },
+    }
 
-    showDebugInfo: function()
+    showDebugInfo()
     {
         if (document.getElementById("overlay"))
             return;
@@ -712,19 +360,19 @@ window.benchmarkController = {
 
         var data = Utilities.createElement("div", {}, container);
         data.textContent = "Please wait...";
-        setTimeout(function() {
+        setTimeout(() => {
             var output = {
-                version: benchmarkRunnerClient.results.version,
-                options: benchmarkRunnerClient.results.options,
-                data: benchmarkRunnerClient.results.data
+                version: this.runnerClient.scoreCalculator.version,
+                options: this.runnerClient.scoreCalculator.options,
+                data: this.runnerClient.scoreCalculator.data
             };
-            data.textContent = JSON.stringify(output, function(key, value) {
+            data.textContent = JSON.stringify(output, (key, value) => {
                 if (typeof value === 'number')
                     return Utilities.toFixedNumber(value, 3);
                 return value;
             }, 1);
         }, 0);
-        data.onclick = function() {
+        data.onclick = () => {
             var selection = window.getSelection();
             selection.removeAllRanges();
             var range = document.createRange();
@@ -734,12 +382,12 @@ window.benchmarkController = {
 
         var button = Utilities.createElement("button", {}, container);
         button.textContent = "Done";
-        button.onclick = function() {
-            benchmarkController.hideDebugInfo();
+        button.onclick = () => {
+            this.hideDebugInfo();
         };
-    },
+    }
 
-    selectResults: function(target)
+    selectResults(target)
     {
         target.selectRange = ((target.selectRange || 0) + 1) % 3;
 
@@ -763,7 +411,16 @@ window.benchmarkController = {
         }
         selection.addRange(range);
     }
-};
+}
 
-window.addEventListener("load", function() { benchmarkController.initialize(); });
+window.benchmarkControllerClass = BenchmarkController;
+window.benchmarkRunnerClientClass = BenchmarkRunnerClient;
+window.sectionsManagerClass = SectionsManager;
 
+window.addEventListener("load", () => {
+
+    window.sectionsManager = new sectionsManagerClass();
+    window.benchmarkController = new benchmarkControllerClass();
+
+    benchmarkController.initialize();
+});

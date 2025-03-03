@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2017 Apple Inc. All rights reserved.
+ * Copyright (C) 2015-2024 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -22,38 +22,36 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
-(function() {
 
-var MultiplyStage = Utilities.createSubclass(Stage,
-    function()
+class MultiplyStage extends Stage {
+    static visibleCSS = [["display", "none", "block"]];
+    static totalRows = 71;
+
+    constructor()
     {
-        Stage.call(this);
+        super();
         this.tiles = [];
         this._offsetIndex = 0;
-    }, {
+    }
 
-    visibleCSS: [
-        ["display", "none", "block"]
-    ],
-    totalRows: 71,
-
-    initialize: function(benchmark, options)
+    async initialize(benchmark, options)
     {
-        Stage.prototype.initialize.call(this, benchmark, options);
-        var tileSize = Math.round(this.size.height / this.totalRows);
+        await super.initialize(benchmark, options);
+
+        const tileSize = Math.round(this.size.height / MultiplyStage.totalRows);
         if (options.visibleCSS)
-            this.visibleCSS = options.visibleCSS;
+            MultiplyStage.visibleCSS = options.visibleCSS;
 
         // Fill the scene with elements
-        var x = Math.round((this.size.width - tileSize) / 2);
-        var y = Math.round((this.size.height - tileSize) / 2);
-        var tileStride = tileSize;
-        var direction = 0;
-        var spiralCounter = 2;
-        var nextIndex = 1;
-        var maxSide = Math.floor(y / tileStride) * 2 + 1;
+        let x = Math.round((this.size.width - tileSize) / 2);
+        let y = Math.round((this.size.height - tileSize) / 2);
+        const tileStride = tileSize;
+        let direction = 0;
+        let spiralCounter = 2;
+        let nextIndex = 1;
+        const maxSide = Math.floor(y / tileStride) * 2 + 1;
         this._centerSpiralCount = maxSide * maxSide;
-        for (var i = 0; i < this._centerSpiralCount; ++i) {
+        for (let i = 0; i < this._centerSpiralCount; ++i) {
             this._addTile(x, y, tileSize, Stage.randomInt(0, 359));
 
             if (i == nextIndex) {
@@ -72,28 +70,28 @@ var MultiplyStage = Utilities.createSubclass(Stage,
         }
 
         this._sidePanelCount = maxSide * Math.floor((this.size.width - x) / tileStride) * 2;
-        for (var i = 0; i < this._sidePanelCount; ++i) {
-            var sideX = x + Math.floor(Math.floor(i / maxSide) / 2) * tileStride;
-            var sideY = y - tileStride * (i % maxSide);
+        for (let i = 0; i < this._sidePanelCount; ++i) {
+            let sideX = x + Math.floor(Math.floor(i / maxSide) / 2) * tileStride;
+            let sideY = y - tileStride * (i % maxSide);
 
             if (Math.floor(i / maxSide) % 2 == 1)
                 sideX = this.size.width - sideX - tileSize + 1;
             this._addTile(sideX, sideY, tileSize, Stage.randomInt(0, 359));
         }
-    },
+    }
 
-    _addTile: function(x, y, tileSize, rotateDeg)
+    _addTile(x, y, tileSize, rotateDeg)
     {
-        var tile = Utilities.createElement("div", { class: "div-" + Stage.randomInt(0,6) }, this.element);
-        var halfTileSize = tileSize / 2;
+        const tile = Utilities.createElement("div", { class: "div-" + Stage.randomInt(0,6) }, this.element);
+        const halfTileSize = tileSize / 2;
         tile.style.left = x + 'px';
         tile.style.top = y + 'px';
         tile.style.width = tileSize + 'px';
         tile.style.height = tileSize + 'px';
-        var visibleCSS = this.visibleCSS[this.tiles.length % this.visibleCSS.length];
+        const visibleCSS = MultiplyStage.visibleCSS[this.tiles.length % MultiplyStage.visibleCSS.length];
         tile.style[visibleCSS[0]] = visibleCSS[1];
 
-        var distance = 1 / tileSize * this.size.multiply(0.5).subtract(new Point(x + halfTileSize, y + halfTileSize)).length();
+        const distance = 1 / tileSize * this.size.multiply(0.5).subtract(new Point(x + halfTileSize, y + halfTileSize)).length();
         this.tiles.push({
             element: tile,
             rotate: rotateDeg,
@@ -102,20 +100,20 @@ var MultiplyStage = Utilities.createSubclass(Stage,
             active: false,
             visibleCSS: visibleCSS,
         });
-    },
+    }
 
-    complexity: function()
+    complexity()
     {
         return this._offsetIndex;
-    },
+    }
 
-    tune: function(count)
+    tune(count)
     {
         this._offsetIndex = Math.max(0, Math.min(this._offsetIndex + count, this.tiles.length));
         this._distanceFactor = 1.5 * (1 - 0.5 * Math.max(this._offsetIndex - this._centerSpiralCount, 0) / this._sidePanelCount) / Math.sqrt(this._offsetIndex);
-    },
+    }
 
-    animate: function()
+    animate()
     {
         var progress = this._benchmark.timestamp % 10000 / 10000;
         var bounceProgress = Math.sin(2 * Math.abs( 0.5 - progress));
@@ -139,15 +137,13 @@ var MultiplyStage = Utilities.createSubclass(Stage,
             tile.element.style[tile.visibleCSS[0]] = tile.visibleCSS[1];
         }
     }
-});
+}
 
-var MultiplyBenchmark = Utilities.createSubclass(Benchmark,
-    function(options)
+class MultiplyBenchmark extends Benchmark {
+    constructor(options)
     {
-        Benchmark.call(this, new MultiplyStage(), options);
+        super(new MultiplyStage(), options);
     }
-);
+}
 
 window.benchmarkClass = MultiplyBenchmark;
-
-}());
